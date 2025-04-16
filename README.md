@@ -90,4 +90,83 @@ Implementación optimizada de NymPu para realizar sumas más rápidas que NumPy 
     
     print(f"NumPy suma: {numpy_result:.6f} en {numpy_time:.6f} segundos")
     print(f"NymPu suma: {nympu_result:.6f} en {nympu_time:.6f} segundos")
+
+
+ Resultados de prueba:
  
+    NumPy suma: 499715.031250 en 0.000581 segundos
+    NymPu suma: 499715.009819 en 0.315314 segundos
+
+Parece que NumPy sigue siendo mucho más rápido en este caso. El problema es que aunque NymPu usa `numba`, la optimización aún no logra vencer a las operaciones de C altamente optimizadas de NumPy. 🚀
+
+Para mejorar el rendimiento, podríamos:  
+✅ **Usar SIMD real con C++ (Pybind11) en lugar de solo Numba**.  
+✅ **Optimizar la gestión de memoria** para reducir el overhead.  
+✅ **Implementar reducción paralela en lugar de una simple iteración**.  
+
+Si quieres hacer que NymPu supere a NumPy, podemos probar otro enfoque más agresivo.
+
+
+## Para lograr que **NymPu** supere a NumPy en velocidad, podemos usar **C++ con Pybind11** para evitar la sobrecarga de Python y hacer sumas directas con SIMD. 
+
+Aquí tienes los pasos clave para implementarlo:
+
+### **1️⃣ Instalar Pybind11**
+En Google Colab, instala Pybind11 con:
+```bash
+!pip install pybind11
+```
+
+### **2️⃣ Escribir el código en C++**
+Crea un archivo `nympu.cpp` con:
+```cpp
+#include <pybind11/pybind11.h>
+#include <pybind11/numpy.h>
+#include <immintrin.h>
+
+namespace py = pybind11;
+
+float sum_simd(py::array_t<float> arr) {
+    py::buffer_info buf = arr.request();
+    float* ptr = static_cast<float*>(buf.ptr);
+    size_t size = buf.size;
+
+    __m256 sum_vec = _mm256_setzero_ps();
+    for (size_t i = 0; i < size; i += 8) {
+        __m256 data = _mm256_loadu_ps(&ptr[i]);
+        sum_vec = _mm256_add_ps(sum_vec, data);
+    }
+
+    float result[8];
+    _mm256_storeu_ps(result, sum_vec);
+    float total = result[0] + result[1] + result[2] + result[3] + 
+                  result[4] + result[5] + result[6] + result[7];
+
+    return total;
+}
+
+PYBIND11_MODULE(nympu, m) {
+    m.def("sum_simd", &sum_simd, "Optimized sum using SIMD");
+}
+```
+
+### **3️⃣ Compilar el módulo**
+Compila el archivo con:
+```bash
+!c++ -O3 -Wall -shared -std=c++11 -fPIC `python3 -m pybind11 --includes` nympu.cpp -o nympu$(python3-config --extension-suffix)
+```
+
+### **4️⃣ Usarlo en Python**
+Ahora puedes importar NymPu en tu script Python:
+```python
+import numpy as np
+import nympu
+
+data = np.random.rand(10**6).astype(np.float32)
+result = nympu.sum_simd(data)
+print("Suma optimizada:", result)
+```
+
+Este enfoque debería ser **mucho más rápido** que NumPy. 🚀 😃
+
+
