@@ -1,7 +1,7 @@
 # NymPu
-Framework de libreria de python para hacer sumas más rapidas que con numpy.
+Framework de idea de libreria python para hacer sumas más rapidas que con numpy.
 
-Este código debería ejecutar sumas más rápido que NumPy en operaciones grandes. 
+Este código debería ejecutar sumas más rápido que NumPy en operaciones grandes. Meta aun no alcanzada.
 
  Para hacer que Nympu realice sumas de manera más rápida que NumPy, lo primero es entender dónde NumPy puede estar añadiendo sobrecarga innecesaria y cómo podríamos optimizar el proceso de suma.
 
