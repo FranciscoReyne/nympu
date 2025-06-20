@@ -1,7 +1,8 @@
 # NymPu
 Framework de idea de libreria python para hacer sumas más rapidas que con numpy.
 
-Este código debería ejecutar sumas más rápido que NumPy en operaciones grandes. Meta aun no alcanzada.
+Este código debería ejecutar sumas más rápido que NumPy en ciertos casos de operaciones.
+
 
 # v1
 
